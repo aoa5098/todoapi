@@ -41,53 +41,41 @@ app.get('/todos', function(req, res) {
 //GET /todos/:id
 app.get('/todos/:id', function(req, res) {
 	var todoID = parseInt(req.params.id, 10);
-	var matchedTodo = _.findWhere(todos, {
-		id: todoID
-	});
+	//put callback into a sequelize callback
+	//send back 200 status
+	//if anything goes wrong post 500
 
-	if (matchedTodo) {
-		res.json(matchedTodo);
-	} else {
-		res.status(404).send();
-	}
+	db.todo.findByID(todoID).then(function (todo) {
+		req.json(todo.toJSON());
+	}, function (e) {
+		req.status(400).json(e);
+	});
+	//var matchedTodo = _.findWhere(todos, {
+	//	id: todoID
+	//});
+
+	//if (matchedTodo) {
+	//	res.json(matchedTodo);
+	//} else {
+	//	res.status(404).send();
+	//}
 });
 
 app.post('/todos', function(req, res) {
 	var body = _.pick(req.body, 'description', 'completed');
 
 		db.Todo.create(body).then(function (todo) {
-			res.json(todo.toJSON());
+			if (todo) {
+				res.json(todo.toJSON());
+			} else {
+				res.status(404).send();
+			}
 		}, function (e) {
-			res.status(400).json(e);
-		})
-//			return Todo.findAll({
-//				where: {
-//					description: {
-//						$like: '%clean%'
-//					}
-//				}
-//			})
-//		});
-// call create on db.todo
-// if successful, respond to api caller with 200 and value of todo object
-//remember call .toJSON
-//if fails call error object (e)
-//send back error, pass it in res.json(e)
+			res.status(500).send();
+		});
+	});
 
 
-
-
-
-//	if (!_.isBoolean(body.completed) || !_.isString(body.description) || body.description.trim().length === 0) {
-//		return res.status(400).send;
-//	}
-
-//	body.description = body.description.trim();
-//	body.id = todoNextID++;
-
-//	todos.push(body);
-//	res.json(body);
-});
 
 app.delete('/todos/:id,', function(req, res) {
 	var todoID = parseInt(req.params.id, 10);
