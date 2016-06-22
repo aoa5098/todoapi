@@ -25,53 +25,29 @@ app.get('/todos', function(req, res) {
 		where.completed = false;
 	}
 
-//	var filteredTodos = todos;
+	if (query.hasOwnProperty('q') && query.q.length > 0) {
+		where.description = {
+			$like: '%' + query.q + '%'
+		};
+	}
 
-//	if (queryParams.hasOwnProperty('completed') && queryParams.completed === 'true') {
-//		filteredTodos = _.where(filteredTodos, {
-//			completed: true
-//		});
-//	} else if (queryParams.hasOwnProperty('completed') && queryParams.completed === 'false') {
-//		filteredTodos = _.where(filteredTodos, {
-//			completed: true
-//		});
-//	}
-
-//	if (queryParams.hasOwnProperty('q') && queryParams.q.length > 0) {
-//		filteredTodos = _.filter(filteredTodos, function(todo) {
-//			return todo.description.toLowerCase().indexOf(queryParams.q.toLowerCase) > -1;
-//		});
-//	}
-//	res.json(filteredTodos);
-
+	db.todo.findAll({where: where}).then(function() {
+		res.json(todos);
+	})
 });
 
 //GET /todos/:id
 app.get('/todos/:id', function(req, res) {
 	var todoID = parseInt(req.params.id, 10);
-	//put callback into a sequelize callback
-	//send back 200 status
-	//if anything goes wrong post 500
-
 	db.todo.findByID(todoID).then(function (todo) {
 		req.json(todo.toJSON());
 	}, function (e) {
 		req.status(400).json(e);
 	});
-	//var matchedTodo = _.findWhere(todos, {
-	//	id: todoID
-	//});
-
-	//if (matchedTodo) {
-	//	res.json(matchedTodo);
-	//} else {
-	//	res.status(404).send();
-	//}
 });
 
 app.post('/todos', function(req, res) {
 	var body = _.pick(req.body, 'description', 'completed');
-
 		db.Todo.create(body).then(function (todo) {
 			if (todo) {
 				res.json(todo.toJSON());
@@ -87,17 +63,21 @@ app.post('/todos', function(req, res) {
 
 app.delete('/todos/:id,', function(req, res) {
 	var todoID = parseInt(req.params.id, 10);
-	var matchedTodo = _.findWhere(todos, {
-		id: todoID
+	db.todo.destroy({
+		where: {
+			id: todo.id
+		}
+	}).then(function (rowsDeleted) {
+		if (rowsDeleted === 0) {
+			res.status(404).json({
+				error: 'No todo with id'
+			});
+		} else {
+			res.status(204).send();
+		}
+	}, function () {
+		res.status(500).send();
 	});
-
-	if (!matchedTodo) {
-		res.status(404).send();
-	} else {
-		todos = _.without(todos, matchedTodo);
-		res.json(matchedTodo);
-	}
-
 });
 
 // PUT /todos/:id
