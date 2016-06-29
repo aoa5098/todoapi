@@ -1,6 +1,6 @@
 module.exports = function (db) {
 
-	return = {
+	return {
 		requireAuthentication: function (req, res, next) {
 			var token = req.get('auth')
 
