@@ -148,7 +148,7 @@ app.post('/users/login', function (req, res) {
 		var token = user.generateToken('authentication');
 
 		if (token) {
-			res.header('Auth', token).json(user.toPublicJSON);
+			res.header('Auth', token).json(user.toPublicJSON());
 			
 		} else {
 			res.status(401).send()
